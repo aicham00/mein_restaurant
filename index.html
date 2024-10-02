@@ -5,7 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
   <title>تسجيل المطاعم ومحلات الحلويات</title>
-  <link rel="stylesheet" href="styles.css"> <!-- ربط ملف CSS -->
+  <style>
+    /* تخصيص الألوان */
+    .bg-pink-500 { background-color: #ff8fb1; } /* لون وردي فاتح وجذاب */
+    .bg-blue-300 { background-color: #93c5fd; }
+    .text-pink-500 { color: #ff8fb1; }
+    .text-blue-300 { color: #93c5fd; }
+  </style>
 </head>
 <body class="min-h-screen bg-blue-300">
   <div class="flex flex-col mx-auto max-w-5xl bg-white shadow-lg">
@@ -63,6 +69,15 @@
           <label class="block text-gray-700">التوصيل</label>
           <input id="deliveryAvailable" type="checkbox" class="mr-2"> متوفر
         </div>
+        <div>
+          <label class="block text-gray-700">تقييم المتجر</label>
+          <input id="storeRating" type="range" min="1" max="5" step="1" value="3" class="w-full">
+          <span id="ratingValue" class="text-gray-700">3</span> / 5
+        </div>
+        <div>
+          <label class="block text-gray-700">أضف ملاحظات</label>
+          <textarea id="storeNotes" rows="3" class="w-full p-2 rounded border border-pink-500" placeholder="أضف ملاحظاتك"></textarea>
+        </div>
         <button type="button" class="bg-pink-500 text-white p-2 rounded w-full" onclick="saveStore()">تسجيل المتجر</button>
       </form>
 
@@ -88,7 +103,68 @@
     </footer>
   </div>
 
-  <script src="scripts.js"></script> <!-- ربط ملف JS -->
+  <script>
+    // Update rating value dynamically
+    document.getElementById('storeRating').addEventListener('input', function() {
+      document.getElementById('ratingValue').textContent = this.value;
+    });
+
+    function saveStore() {
+      const storeType = document.getElementById('storeType').value;
+      const storeName = document.getElementById('storeName').value;
+      const storePhone = document.getElementById('storePhone').value;
+      const mealName = document.getElementById('mealName').value;
+      const storeImage = document.getElementById('storeImage').files[0];
+      const deliveryAvailable = document.getElementById('deliveryAvailable').checked ? 'متوفر' : 'غير متوفر';
+      const storeRating = document.getElementById('storeRating').value;
+      const storeNotes = document.getElementById('storeNotes').value;
+
+      if (!storeName || !storePhone || !mealName) {
+        alert('يرجى إدخال جميع الحقول');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const storeList = document.getElementById('storeList');
+        const newStore = document.createElement('li');
+        newStore.classList.add('p-4', 'bg-white', 'rounded', 'shadow', 'border', 'border-pink-500', 'flex', 'items-center', 'space-x-4', 'relative');
+
+        const imgElement = document.createElement('img');
+        imgElement.src = event.target.result;
+        imgElement.alt = 'صورة الوجبة';
+        imgElement.classList.add('h-16', 'w-16', 'rounded-full', 'object-cover');
+
+        const textElement = document.createElement('div');
+        textElement.innerHTML = `
+          <strong>${storeType}</strong>: ${storeName}<br>
+          هاتف: ${storePhone}<br>
+          الوجبة: ${mealName}<br>
+          التوصيل: ${deliveryAvailable}<br>
+        `;
+        textElement.classList.add('text-gray-700');
+
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'حذف';
+        deleteButton.classList.add('absolute', 'top-2', 'right-2', 'bg-red-500', 'text-white', 'p-1', 'rounded');
+        deleteButton.onclick = function() {
+          storeList.removeChild(newStore);
+        };
+
+        newStore.appendChild(imgElement);
+        newStore.appendChild(textElement);
+        newStore.appendChild(deleteButton);
+        storeList.appendChild(newStore);
+      };
+
+      if (storeImage) {
+        reader.readAsDataURL(storeImage);
+      }
+
+      document.getElementById('restaurantForm').reset();
+      document.getElementById('ratingValue').textContent = 3; // Reset rating display
+    }
+  </script>
 </body>
 </html>
 
