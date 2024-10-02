@@ -1,3 +1,5 @@
+// scripts.js
+// حفظ المتجر في localStorage وعرضه
 function saveStore() {
   const storeType = document.getElementById('storeType').value;
   const storeName = document.getElementById('storeName').value;
@@ -6,7 +8,6 @@ function saveStore() {
   const storeImage = document.getElementById('storeImage').files[0];
   const deliveryAvailable = document.getElementById('deliveryAvailable').checked ? 'متوفر' : 'غير متوفر';
 
-  // التحقق من عدم ترك الحقول فارغة
   if (!storeName || !storePhone || !mealName) {
     alert('يرجى إدخال جميع الحقول');
     return;
@@ -14,47 +15,77 @@ function saveStore() {
 
   const reader = new FileReader();
   reader.onload = function(event) {
-    const storeList = document.getElementById('storeList');
-    const newStore = document.createElement('li');
-    newStore.classList.add('p-4', 'bg-white', 'rounded', 'shadow', 'border', 'border-pink-500', 'flex', 'items-center', 'space-x-4', 'relative');
-
-    // إنشاء عنصر الصورة
-    const imgElement = document.createElement('img');
-    imgElement.src = event.target.result;
-    imgElement.alt = 'صورة الوجبة';
-    imgElement.classList.add('h-16', 'w-16', 'rounded-full', 'object-cover');
-
-    // إنشاء عنصر النص الذي يحتوي على تفاصيل المتجر
-    const textElement = document.createElement('div');
-    textElement.innerHTML = `
-      <strong>${storeType}</strong>: ${storeName}<br>
-      هاتف: ${storePhone}<br>
-      الوجبة: ${mealName}<br>
-      التوصيل: ${deliveryAvailable}
-    `;
-    textElement.classList.add('text-gray-700');
-
-    // زر الحذف
-    const deleteButton = document.createElement('button');
-    deleteButton.textContent = 'حذف';
-    deleteButton.classList.add('absolute', 'top-2', 'right-2', 'bg-red-500', 'text-white', 'p-1', 'rounded');
-    deleteButton.onclick = function() {
-      storeList.removeChild(newStore);
+    const storeData = {
+      storeType,
+      storeName,
+      storePhone,
+      mealName,
+      imageSrc: event.target.result,
+      deliveryAvailable,
     };
 
-    // إضافة العناصر إلى قائمة المتاجر
-    newStore.appendChild(imgElement);
-    newStore.appendChild(textElement);
-    newStore.appendChild(deleteButton);
-    storeList.appendChild(newStore);
+    // تخزين البيانات في localStorage
+    const stores = JSON.parse(localStorage.getItem('stores')) || [];
+    stores.push(storeData);
+    localStorage.setItem('stores', JSON.stringify(stores));
+
+    displayStores(); // عرض المتاجر
   };
 
-  // قراءة صورة الوجبة إذا كانت موجودة
   if (storeImage) {
     reader.readAsDataURL(storeImage);
   }
 
-  // إعادة تعيين النموذج
   document.getElementById('restaurantForm').reset();
 }
+
+// عرض المتاجر المخزنة
+function displayStores() {
+  const storeList = document.getElementById('storeList');
+  storeList.innerHTML = '';
+
+  const stores = JSON.parse(localStorage.getItem('stores')) || [];
+  stores.forEach((store, index) => {
+    const newStore = document.createElement('li');
+    newStore.classList.add('p-4', 'bg-white', 'rounded', 'shadow', 'border', 'border-pink-500', 'flex', 'items-center', 'space-x-4');
+
+    const imgElement = document.createElement('img');
+    imgElement.src = store.imageSrc;
+    imgElement.alt = 'صورة الوجبة';
+    imgElement.classList.add('h-16', 'w-16', 'rounded-full', 'object-cover');
+
+    const textElement = document.createElement('div');
+    textElement.innerHTML = `
+      <strong>${store.storeType}</strong>: ${store.storeName}<br>
+      هاتف: ${store.storePhone}<br>
+      الوجبة: ${store.mealName}<br>
+      التوصيل: ${store.deliveryAvailable}
+    `;
+    textElement.classList.add('text-gray-700');
+
+    // زر حذف المتجر
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'حذف';
+    deleteButton.classList.add('bg-red-500', 'text-white', 'p-1', 'rounded');
+    deleteButton.onclick = function() {
+      deleteStore(index);
+    };
+
+    newStore.appendChild(imgElement);
+    newStore.appendChild(textElement);
+    newStore.appendChild(deleteButton);
+    storeList.appendChild(newStore);
+  });
+}
+
+// حذف المتجر من localStorage
+function deleteStore(index) {
+  const stores = JSON.parse(localStorage.getItem('stores')) || [];
+  stores.splice(index, 1);
+  localStorage.setItem('stores', JSON.stringify(stores));
+  displayStores();
+}
+
+// عرض المتاجر عند تحميل الصفحة
+window.onload = displayStores;
 
